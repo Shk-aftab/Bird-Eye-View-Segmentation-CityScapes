@@ -1,0 +1,100 @@
+device: "cuda"
+seed: 42
+
+dataset_path: "E:/workspace/BEV_segmentation/data/cam2bev-data-master-1_FRLR/1_FRLR"
+img_height: 256  # High-res: 384 | Balanced: 256 | Fast: 224
+img_width: 256   # High-res: 384 | Balanced: 256 | Fast: 224
+bev_height: 256  # High-res: 384 | Balanced: 256 | Fast: 224
+bev_width: 256    # High-res: 384 | Balanced: 256 | Fast: 224
+depth_bins: 8
+num_classes: 7  # Simplified for autonomous driving
+batch_size: 8  # High-res: 4 | Balanced: 8 | Fast: 16
+num_workers: 4  # High-res: 4 | Balanced: 4 | Fast: 6
+
+backbone: "resnet50"  # High-res: resnet50 | Balanced: resnet18 | Fast: resnet18
+pretrained: true
+freeze_backbone: false  # Allow backbone to adapt to BEV data
+
+bev_encoder: "cnn"
+bev_channels: 256   # 128
+
+epochs: 5  # High-res: 20 | Balanced: 15 | Fast: 10
+learning_rate: 0.001   # LR for new layers (BEV encoder, decoder) - Increased 10x
+backbone_lr: 0.0001    # Lower LR for pretrained backbone - Increased 10x
+patience: 3  # Early stopping patience
+mixed_precision: true
+save_dir: "./checkpoints"
+
+# Data control
+train_data_percentage: 0.25  # High-res: 0.5 | Balanced: 1.0 | Fast: 0.25
+
+# Temporal fusion
+temporal_fusion:
+  enabled: false  # High-res: true | Balanced: false | Fast: false
+  num_timesteps: 3
+  fusion_method: "attention"  # 'attention', 'conv', or 'lstm'
+  timestep_interval: 500  # milliseconds
+
+# Weights & Biases configuration
+wandb:
+  project: "bev-segmentation"
+  entity: null  # Set your wandb username/team here
+  name: "bev-resnet50-highres"
+  tags: ["bev", "segmentation", "multi-view", "resnet50", "high-res"]
+  notes: "BEV segmentation with ResNet50, high resolution, and temporal fusion"
+
+class_distribution:
+- 0.5634167790412903
+- 0.5696074962615967
+- 1.197895884513855
+- 48.42645263671875
+- 48.70550537109375
+- 0.4900251030921936
+- 0.047096721827983856
+class_weights:
+- 0.9425314664840698
+- 0.9373956918716431
+- 0.6463998556137085
+- 0.10166453570127487
+- 0.10137287527322769
+- 1.01065194606781
+- 3.259983777999878
+
+
+# --- Camera calibration (static across dataset) ---
+cameras:
+  front:
+    fx: 278.283
+    fy: 408.1295
+    cx: 482
+    cy: 302
+    position: [1.7, 0.0, 1.4]
+    rotation: [0.0, 0.0, 0.0]  # yaw, pitch, roll
+  rear:
+    fx: 278.283
+    fy: 408.1295
+    cx: 482
+    cy: 302
+    position: [-0.6, 0.0, 1.4]
+    rotation: [3.1415, 0.0, 0.0]
+  left:
+    fx: 278.283
+    fy: 408.1295
+    cx: 482
+    cy: 302
+    position: [0.5, 0.5, 1.5]
+    rotation: [1.5708, 0.0, 0.0]
+  right:
+    fx: 278.283
+    fy: 408.1295
+    cx: 482
+    cy: 302
+    position: [0.5, -0.5, 1.5]
+    rotation: [-1.5708, 0.0, 0.0]
+  drone:
+    fx: 682.578
+    fy: 682.578
+    cx: 482
+    cy: 302
+    position: [0.0, 0.0, 50.0]
+    rotation: [0.0, 1.5708, -1.5708]
